@@ -4,13 +4,15 @@
   <meta name="author" content="John P. McCrae" />
   <title>Linguistic Data Validation and Observation</title>
   <style type="text/css">code{white-space: pre;}</style>
+<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
 <style>
   html { background-color: black; }
-  body { background-color: white; border-radius: 12px}
+  body { background-color: #111; border-radius: 12px}
   /* A section is a slide. It's size is 800x600, and this will never change */
   section {
-      font-family: Arial, serif;
+      font-family: 'Oswald', Arial, serif;
       font-size: 20pt;
+      color: #fff;
     }
   address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 10px 20px 10px 20px; }
   h1, h2, h3 {
@@ -74,26 +76,69 @@
 
   /* The items to-be-selected */
   .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+  /** My styles **/
+.leftcol { float:left;max-width:50%; }
+.rightcol { float:right;width:48%; }
+.leftcol .icon { text-align: center; }
+.rightcol .icon { text-align:center; }
 </style>
 </head>
 <body>
-<section class="title">
-  <h1 class="title">Linguistic Data Validation and Observation</h1>
+<section>
+    <h1 class="title">Linguistic Data <span style="color:#007154;">Validation</span> and <span style="color:#007154;">Observation</span></h1>
   <h2 class="author">John P. M<sup>c</sup>Crae</h2>
   <h3 class="date">12th June 2014</h3>
 </section>
 <section id="problem" class="slide level1">
 <h1>Problem</h1>
-<div>
-<img src="icon_47466.png" width="10%"/> Lots of resources
+<div class="leftcol">
+<br/> <br/>
+<p class="icon">
+<img src="icon_47466i.png" width="30%"/>
+</p>
+  <p class="icon">
+Lots of resources
+</p>
 </div>
-<div>
-<img src="icon_44875.png" width="10%"/> Frequently contain flaws
+<div class="rightcol">
+<br/> <br/>
+<p class="icon">
+<img src="icon_44875i.png" width="30%"/>
+</p>
+  <p class="icon">
+Frequently contain flaws
+</p>
 </div>
+
 </section>
 <section id="case-study-wordnets" class="slide level1">
 <h1>Case Study: WordNets</h1>
-<p>Sources:</p>
+<p>Open Multilingual WordNets:</p>
+<div class="leftcol">
+<ul>
+<li>Albanian</li>
+<li>Arabic</li>
+<li>Chinese (Taiwan)</li>
+<li>Danish</li>
+<li>Finnish</li>
+<li>French</li>
+<li>Hebrew</li>
+<li>Italian</li>
+<li>Japanese
+</div>
+<div class="rightcol"></li>
+<li>Spanish</li>
+<li>Catalan</li>
+<li>Basque</li>
+<li>Galician</li>
+<li>Malay</li>
+<li>Norwegian</li>
+<li>Polish</li>
+<li>Portuguese</li>
+<li>Thai</li>
+</ul>
+</div>
+
 </section>
 <section id="case-study-wordnets-1" class="slide level1">
 <h1>Case Study: WordNets</h1>
@@ -105,12 +150,25 @@
 </section>
 <section id="solution" class="slide level1">
 <h1>Solution</h1>
-<div>
-<img src="icon_40065.png" width="10%"/> Data certification
+<div class="leftcol">
+<br/> <br/>
+<p class="icon">
+<img src="icon_40065i.png" width="30%"/>
+</p>
+  <p class="icon">
+Data certification
+</p>
 </div>
-<div>
-<img src="icon_3683.png" width="10%"/> Metadata
+<div class="rightcol">
+<br/> <br/>
+<p class="icon">
+<img src="icon_3683i.png" width="30%"/>
+</p>
+  <p class="icon">
+Metadata
+</p>
 </div>
+
 </section>
 <section id="data-certification" class="slide level1">
 <h1>Data certification</h1>
@@ -123,11 +181,18 @@
 </section>
 <section id="zrtifi" class="slide level1">
 <h1>Zrtifi</h1>
-<p><a href="design.html">click</a></p>
+<br/> <br/>
+<h1>
+<a href="index.html">Click for Demo</a>
+</h1>
+
 </section>
 <section id="backend" class="slide level1">
 <h1>Backend</h1>
-<p><img src="Zrtifi Backend Flow.png"/></p>
+<div style="width:100%;text-align:center;">
+<img src="Zrtifi Backend Flowi.png"/>
+</div>
+
 </section>
 <section id="rules" class="slide level1">
 <h1>Rules</h1>
@@ -156,7 +221,8 @@
 {
     "@context": "http://...",
     "result": "success",
-    "void:triples": 123456
+    "void:triples": 123456,
+    "next" : "rdfunit"
 }
 </pre>
 
@@ -172,21 +238,26 @@
 <section id="metadata" class="slide level1">
 <h1>Metadata</h1>
 <div class="leftcol">
-<div>
-<pre><code> Datahub.io</code></pre>
+  <div>
+     
+Datahub.io
 </div>
-<div>
-<pre><code> Metashare</code></pre>
+  <div>
+     
+Metashare
 </div>
 </div>
 <div class="rightcol">
-<div>
-<pre><code>CLARIN</code></pre>
+  <div>
+    
+CLARIN
 </div>
-<div>
-<pre><code>LRE Map</code></pre>
+  <div>
+    
+LRE Map
 </div>
 </div>
+
 </section>
 <section id="statistics" class="slide level1">
 <h1>Statistics</h1>
@@ -209,13 +280,18 @@
 </section>
 <section id="better-llod-cloud" class="slide level1">
 <h1>Better LLOD Cloud</h1>
+<div style="text-align:center;">
+<img src="llod-cloud.currenti.png" style="max-height:77%;"/>
+</div>
+
 </section>
 <section id="image-credits" class="slide level1">
 <h1>Image credits</h1>
-<p>Heavy Load designed by Juan Pablo Bravo from the Noun Project</p>
-<p>Floppy Disk designed by Julien Deveaux from the Noun Project</p>
-<p>Warranty designed by Eugen Belyakoff from the Noun Project</p>
-<p>Network designed by Ben Rex Furneaux from the Noun Project</p>
+<div style="font-size:50%;">
+Heavy Load designed by Juan Pablo Bravo from the Noun Project<br/> Floppy Disk designed by Julien Deveaux from the Noun Project<br/> Warranty designed by Eugen Belyakoff from the Noun Project<br/> Network designed by Ben Rex Furneaux from the Noun Project<br/>
+</div>
+
+
 </section>
 <!-- {{{{ dzslides core
 #

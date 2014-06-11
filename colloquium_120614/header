@@ -4,13 +4,15 @@
   <meta name="author" content="John P. McCrae" />
   <title>Linguistic Data Validation and Observation</title>
   <style type="text/css">code{white-space: pre;}</style>
+<link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
 <style>
   html { background-color: black; }
-  body { background-color: white; border-radius: 12px}
+  body { background-color: #111; border-radius: 12px}
   /* A section is a slide. It's size is 800x600, and this will never change */
   section {
-      font-family: Arial, serif;
+      font-family: 'Oswald', Arial, serif;
       font-size: 20pt;
+      color: #fff;
     }
   address, blockquote, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, ol, p, pre, table, ul, dl { padding: 10px 20px 10px 20px; }
   h1, h2, h3 {
@@ -74,7 +76,16 @@
 
   /* The items to-be-selected */
   .incremental > *[aria-selected] ~ * { opacity: 0.2; }
+  /** My styles **/
+.leftcol { float:left;max-width:50%; }
+.rightcol { float:right;width:48%; }
+.leftcol .icon { text-align: center; }
+.rightcol .icon { text-align:center; }
 </style>
 </head>
 <body>
-
+<section>
+    <h1 class="title">Linguistic Data <span style="color:#007154;">Validation</span> and <span style="color:#007154;">Observation</span></h1>
+  <h2 class="author">John P. M<sup>c</sup>Crae</h2>
+  <h3 class="date">12th June 2014</h3>
+</section>

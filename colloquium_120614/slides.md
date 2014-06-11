@@ -4,18 +4,46 @@
 
 # Problem
 
-<div>
-  <img src="icon_47466.png" width="10%"/>
-  Lots of resources
+<div class="leftcol">
+<br/>
+<br/>
+  <p class="icon"><img src="icon_47466i.png" width="30%"/></p>
+  <p class="icon">Lots of resources</p>
 </div>
-<div>
-  <img src="icon_44875.png" width="10%"/>
-  Frequently contain flaws
+<div class="rightcol">
+<br/>
+<br/>
+  <p class="icon"><img src="icon_44875i.png" width="30%"/></p>
+  <p class="icon">Frequently contain flaws</p>
 </div>
 
 # Case Study: WordNets
 
-Sources:
+Open Multilingual WordNets:
+
+<div class="leftcol">
+* Albanian
+* Arabic
+* Chinese (Taiwan)
+* Danish
+* Finnish
+* French
+* Hebrew
+* Italian
+* Japanese
+</div>
+<div class="rightcol">
+* Spanish
+* Catalan
+* Basque
+* Galician
+* Malay
+* Norwegian
+* Polish
+* Portuguese
+* Thai
+
+</div>
 
 # Case Study: WordNets
 
@@ -27,13 +55,17 @@ Data quality:
 
 # Solution
 
-<div>
-  <img src="icon_40065.png" width="10%"/>
-  Data certification
+<div class="leftcol">
+<br/>
+<br/>
+  <p class="icon"><img src="icon_40065i.png" width="30%"/></p>
+  <p class="icon">Data certification</p>
 </div>
-<div>
-  <img src="icon_3683.png" width="10%"/>
-  Metadata
+<div class="rightcol">
+<br/>
+<br/>
+  <p class="icon"><img src="icon_3683i.png" width="30%"/></p>
+  <p class="icon">Metadata</p>
 </div>
 
 # Data certification
@@ -46,11 +78,15 @@ Requirements:
 
 # Zrtifi
 
-[click](design.html)
+<br/>
+<br/>
+<h1>[Click for Demo](index.html)</h1>
 
 # Backend
 
-<img src="Zrtifi Backend Flow.png"/>
+<div style="width:100%;text-align:center;">
+<img src="Zrtifi Backend Flowi.png"/>
+</div>
 
 # Rules
 
@@ -121,15 +157,18 @@ Inversion of control service
 * Triple counts
 * Validation
 
+
 # Better LLOD Cloud 
 
+<div style="text-align:center;">
+<img src="llod-cloud.currenti.png" style="max-height:77%;"/>
+</div>
 
 # Image credits
 
-Heavy Load designed by Juan Pablo Bravo from the Noun Project
-
-Floppy Disk designed by Julien Deveaux from the Noun Project
-
-Warranty designed by Eugen Belyakoff from the Noun Project
-
-Network designed by Ben Rex Furneaux from the Noun Project
+<div style="font-size:50%;">
+Heavy Load designed by Juan Pablo Bravo from the Noun Project<br/>
+Floppy Disk designed by Julien Deveaux from the Noun Project<br/>
+Warranty designed by Eugen Belyakoff from the Noun Project<br/>
+Network designed by Ben Rex Furneaux from the Noun Project<br/>
+</div>
