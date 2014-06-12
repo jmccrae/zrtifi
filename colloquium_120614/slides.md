@@ -49,9 +49,19 @@ Open Multilingual WordNets:
 
 Formats:
 
+<div style="text-align:center;">
+<img src="wn_formatsi.png" style="max-height:60%;"/>
+</div>
+
+
 # Case Study: WordNets
 
 Data quality:
+
+<div style="text-align:center;">
+<img src="wn_errorsi.png" style="max-height:60%;"/>
+</div>
+
 
 # Solution
 
@@ -78,9 +88,10 @@ Requirements:
 
 # Zrtifi
 
+<!--<br/>
 <br/>
-<br/>
-<h1>[Click for Demo](index.html)</h1>
+<h1>[Click for Demo](index.html)</h1>-->
+<iframe src="index.html" width="100%" height="77%"></iframe>
 
 # Backend
 
@@ -106,7 +117,7 @@ Inversion of control service
 
 # Validators
 
-* Shell scripts
+* Single shell command
 * Return JSON-LD
 
 <pre>
@@ -126,24 +137,28 @@ Inversion of control service
 
 # Metadata
 
-<div class="leftcol">
-  <div>
+<div class="leftcol" style="height:80%;width:100%;">
+  <div style="padding: 20%;">
      Datahub.io
   </div>
-  <div>
+  <div style="padding: 20%;">
      Metashare
   </div>
 </div>
 <div class="rightcol">
-  <div>
+  <div style="padding: 20%;">
     CLARIN
   </div>
-  <div>
+  <div style="padding: 20%;">
     LRE Map
   </div>
 </div>
 
 # Statistics
+
+<div style="text-align:center;">
+<img src="repo_sizesi.png" style="max-height:77%;"/>
+</div>
 
 # LingHub
 
@@ -164,9 +179,15 @@ Inversion of control service
 <img src="llod-cloud.currenti.png" style="max-height:77%;"/>
 </div>
 
-# Image credits
+# Thanks
 
-<div style="font-size:50%;">
+<br/>
+<br/>
+<h3><a href="http://jmccrae.github.io/zrtifi/colloquium_120614/slides.html">Slides on GitHub</a></h3>
+
+<h3><img src="by-nc.png" width="100px;"/></h3>
+
+<div style="font-size:30%;">
 Heavy Load designed by Juan Pablo Bravo from the Noun Project<br/>
 Floppy Disk designed by Julien Deveaux from the Noun Project<br/>
 Warranty designed by Eugen Belyakoff from the Noun Project<br/>
