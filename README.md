@@ -1,9 +1,11 @@
-# zrtifi-scratch #
+# zrtifi #
 
 ## Build & Run ##
 
+[![Build Status](https://secure.travis-ci.org/jmccrae/zrtifi.png)](http://travis-ci.org/jmccrae/zrtifi)
+
 ```sh
-$ cd zrtifi-scratch
+$ cd zrtifi
 $ ./sbt
 > container:start
 > browse

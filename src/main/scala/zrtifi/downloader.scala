@@ -24,7 +24,7 @@ object ZrtifiDownloader {
     val report = "report/" + bytesToHex(md5.digest(urlString.getBytes()))
 
     backend.insertTriple(report, "", "<http://zrtifi.org/download>", "\"started\"")
-    processManager.startThread(new DownloadExecutor(url, report, backend))
+    processManager.startThread(new DownloadExecutor(url, report, backend), report)
 
     return "/" + report
   }

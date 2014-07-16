@@ -12,6 +12,19 @@ trait Sniffer {
 
 object SnifferRunnable {
   val sniffers = Services.getAll(classOf[Sniffer]).toList
+
+  def resolveExecutable(name : String, file : File) : Option[ProcessRunnable] = {
+    val f = new File(new File("analyzers"), name)
+    if(f.exists()) {
+      return Some(new ExecRunnable(f.getAbsolutePath(), file.getAbsolutePath()))
+    }
+    val f_py = new File(new File("analyzers"), name + ".py")
+    if(f_py.exists()) {
+      return Some(new ExecRunnable("python", f_py.getAbsolutePath(), file.getAbsolutePath()))
+    }
+    return None
+  }
+
 }
 
 class SnifferRunnable(file : File) extends ProcessRunnable {
@@ -25,15 +38,21 @@ class SnifferRunnable(file : File) extends ProcessRunnable {
     fileInputStream.close()
     val validSniffers = sniffers.filter(_.isInFormat(fileName, firstKilobyte))
     println("Found %d/%d sniffers " format (validSniffers.size, sniffers.size))
-    chainSniffer(validSniffers, file)  
+    chainSniffer(validSniffers, file, context)  
   }
 
-  private def chainSniffer(validSniffers : List[Sniffer], file : File) {
+  private def chainSniffer(validSniffers : List[Sniffer], file : File, context : ProcessContext) {
     validSniffers match {
       case Nil => 
       case sniffer :: sniffers => {
-        println(sniffer.chain())
-        chainSniffer(sniffers, file)
+        resolveExecutable(sniffer.chain(), file) match {
+          case Some(runnable) => {
+            System.err.println("chaining")
+            context.chain(runnable)
+          }
+          case None => System.err.println("Could not resolve chain: " + sniffer.chain())
+        }
+        chainSniffer(sniffers, file, context)
       }
     }
   }
