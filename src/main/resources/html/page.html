@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Zrtifi - Because Data Quality Matters</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/assets/bootstrap.min.css">
+    <style>
+.circle {
+    width: 100px;
+    height: 100px;
+    -webkit-border-radius: 50px;
+    -moz-border-radius: 50px;
+    border-radius: 50px; 
+    background-color: black;
+    margin-left:47%;
+}
+.circle h3 {
+    color:white;
+    line-height:100px;
+    text-align:center;
+    vertical-align:middle;
+}
+    </style>
+    <script type="text/javascript" src="/assets/md5-min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript">
+$(document).ready(function () {
+$("#url").keyup(function (data) {
+    var hash = hex_md5($("#url").val());
+    $('.md5').html(hash);
+    $('#md5_a').attr('href','/report/' + hash);
+    $('#mds_img').attr('src','/badge/' + hash + '.png');
+});
+});
+
+    </script>
+    <!-- You should include this in your template to make RDF tables appear correctly -->
+    <link href="/assets/rdf.css" media="all" rel="stylesheet" type="text/css">
+    <!-- Used to reveal/show RDF format options -->
+    <script>
+        var rdf_formats_revealed = false;
+
+        function toggle_rdf_format_list() {
+            if(rdf_formats_revealed) {
+                document.getElementById('rdf_format_list').style.display='none';
+                rdf_formats_revealed = false;
+            } else {
+                document.getElementById('rdf_format_list').style.display='inline';
+                rdf_formats_revealed = true;
+            }
+        }
+    </script>
+  </head>
+  <body>
+  <div class="container">
+      <div class="row">
+          <center>
+              <h1><img src="/assets/rosette.png" style="max-width:100px;"/><span style="font-size:300%;">zrtifi</span></h1>
+          </center>
+      </div>              
+      ${content}
+  </div>
+</body>
+</html>
