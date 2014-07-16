@@ -13,8 +13,8 @@ class BackendTest extends FlatSpec with Matchers {
   def withBackend(test : RDFBackend => Any) {
     val file = File.createTempFile("test",".db")
     val backend = new RDFBackend(file.getPath())
-    backend.load(new java.io.ByteArrayInputStream(
-      ("<%stest_resource> <http://www.w3.org/2000/01/rdf-schema#label> \"test\"@eng .\n" format BASE_NAME).getBytes()))
+    backend.init()
+    backend.insertTriple("test_resource", "", "<http://www.w3.org/2000/01/rdf-schema#label>", "\"test\"@eng")
     try {
       test(backend)
     } finally {

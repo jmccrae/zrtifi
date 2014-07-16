@@ -10,7 +10,7 @@ object ZrtifiSettings {
   // Where the SQLite database should appear
   val DB_FILE = "db.sqlite"
   // The name of the server
-  val DISPLAY_NAME = "Zrtifi - Because Data Quality Matters"
+  val DISPLAY_NAME = "Because Data Quality Matters"
   // The dump URI
   val DUMP_URI = "/zrtifi.nt.gz"
 
