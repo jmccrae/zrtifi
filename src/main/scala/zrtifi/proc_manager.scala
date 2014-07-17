@@ -2,7 +2,7 @@ package com.github.jmccrae.zrtifi
 
 import java.io.File
 import scala.collection.immutable.Queue
-import org.apache.commons.exec.{CommandLine, DefaultExecutor, DefaultExecuteResultHandler, ExecuteWatchdog, PumpStreamHandler, LogOutputStream}
+import org.apache.commons.exec.{CommandLine, DefaultExecutor, DefaultExecuteResultHandler, ExecuteException, ExecuteWatchdog, PumpStreamHandler, LogOutputStream}
 import ZrtifiSettings._
 
 class ProcessManager(dataModel : RDFBackend) {
@@ -103,7 +103,11 @@ class ProcessManager(dataModel : RDFBackend) {
     }
     def addTriple(frag : String, prop : String, obj : String) {
       rdfIDs.get(id) match {
-        case Some(rdfID) => dataModel.insertTriple(rdfID, frag, prop, obj)
+        case Some(rdfID) => if(obj.startsWith("<#")) {
+          dataModel.insertTriple(rdfID, frag, prop, "<%s%s#%s>" format (BASE_NAME, rdfID, obj.slice(2,obj.size - 1)))
+        } else {
+          dataModel.insertTriple(rdfID, frag, prop, obj)
+        }
         case None => System.err.println("No rdfID for this process! (Should not happen)")
       }
     }
@@ -129,23 +133,70 @@ trait ProcessContext {
   def addTriple(frag : String, property : String, obj : String) : Unit
 }
 
+class ExecChainer {
+  var nextTarget : Option[File] = None
+  var nextExec : Option[String] = None
+  
+  def chain : Option[ProcessRunnable] = nextTarget match {
+    case Some(t) => nextExec match {
+      case Some(e) => ExecRunnable.resolveExecutable(e, t)
+      case None => None
+    }
+      case None => None
+  }
+}
+
+
+object ExecRunnable {
+  def resolveExecutable(name : String, file : File) : Option[ProcessRunnable] = {
+    val f = new File(new File("analyzers"), name)
+    if(f.exists()) {
+      return Some(new ExecRunnable(f.getAbsolutePath(), file.getAbsolutePath()))
+    }
+    val f_py = new File(new File("analyzers"), name + ".py")
+    if(f_py.exists()) {
+      return Some(new ExecRunnable("python", f_py.getAbsolutePath(), file.getAbsolutePath()))
+    }
+    return None
+  }
+}
 
 class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
-  val tripleRegex = "<(#[^>]*)?>\\s+(<[^>]+>)\\s+(\".*?(?<!\\\\)\"(|@[\\w-]+|\\^\\^<[^>]+>)|<[^>]+>)\\s*\\.\\s*".r
+  val tripleRegex = "<(#([^>]*))?>\\s+(<[^>]+>)\\s+(\".*?(?<!\\\\)\"(|@[\\w-]+|\\^\\^<[^>]+>)|<[^>]+>)\\s*\\.\\s*".r
+  val zrtifiInternal = ("<%s(.*)>" format java.util.regex.Pattern.quote(ZRTIFI_INTERNAL)).r
 
   def run(context : ProcessContext) {
     val cmdLine = new CommandLine(command)
     for(arg <- args) {
       cmdLine.addArgument(arg)
     }
-    val handler = new DefaultExecuteResultHandler()
+    val chain = new ExecChainer()
+    val handler = new DefaultExecuteResultHandler() {
+      override def onProcessComplete(exitValue : Int) {
+        System.err.println("Finish process (status=%d): %s %s" format (exitValue, command, args.mkString(" ")))
+        chain.chain match {
+          case Some(chain) => context.chain(chain)
+          case None => // stop
+        }
+      }
+      override def onProcessFailed(e : ExecuteException) {
+        e.printStackTrace()
+      }
+    } 
     val watchdog = new ExecuteWatchdog(EXTERNAL_PROCESS_TIMEOUT * 1000)
     val executor = new DefaultExecutor()
     val psh = new PumpStreamHandler(new LogOutputStream() {
       def processLine(line : String, lineNo : Int) { 
         line match {
-          case tripleRegex(frag, prop, obj, _) => {
-            context.addTriple(frag, prop, obj)
+          case tripleRegex(_, frag, prop, obj, _) => {
+            prop match {
+              case zrtifiInternal(prop) => prop match {
+                case "next" => chain.nextExec = Some(obj.slice(1,obj.size-1))
+                case "nextTarget" => chain.nextTarget = Some(new File(obj.slice(1,obj.size-1)))
+                case _ => // ignore internal URI
+              }
+              case _ => context.addTriple(Option(frag).getOrElse(""), prop, obj)
+            }
           }
           case _ => System.err.println("Ignoring STDOUT: " + line)
         }
@@ -155,7 +206,7 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
         System.err.println("STDERR: " + line)
       }
     })
-    executor.setExitValue(1)
+    executor.setExitValue(0)
     executor.setWatchdog(watchdog)
     executor.setStreamHandler(psh)
     System.err.println("Start process: %s %s" format (command, args.mkString(" ")))

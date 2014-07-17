@@ -167,6 +167,39 @@ class RDFBackend(db : String) {
     ps1.execute()
   }
 
+  def removeTriples(id : String, frag : Option[String] = None, prop : Option[String] = None) {
+    frag match {
+      case Some(f) => prop match {
+        case Some(p) => {
+          val ps1 = conn.prepareStatement("delete from triples where subject=? and fragment=? and property=?")
+          ps1.setString(1, id)
+          ps1.setString(2, f)
+          ps1.setString(3, p)
+          ps1.execute()
+        }
+        case None => {
+          val ps1 = conn.prepareStatement("delete from triples where subject=? and fragment=?")
+          ps1.setString(1, id)
+          ps1.setString(2, f)
+          ps1.execute()
+        }
+      }
+      case None => prop match {
+        case Some(p) => {
+          val ps1 = conn.prepareStatement("delete from triples where subject=? and property=?")
+          ps1.setString(1, id)
+          ps1.setString(2, p)
+          ps1.execute()
+        }
+        case None => {
+          val ps1 = conn.prepareStatement("delete from triples where subject=?")
+          ps1.setString(1, id)
+          ps1.execute()
+        }
+      }
+    }
+  }
+
   def init() {
 //  def load(inputStream : java.io.InputStream) {
 //    def splitUri(subj : String) : (String, String) = {

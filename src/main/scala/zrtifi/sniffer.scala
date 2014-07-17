@@ -13,18 +13,6 @@ trait Sniffer {
 object SnifferRunnable {
   val sniffers = Services.getAll(classOf[Sniffer]).toList
 
-  def resolveExecutable(name : String, file : File) : Option[ProcessRunnable] = {
-    val f = new File(new File("analyzers"), name)
-    if(f.exists()) {
-      return Some(new ExecRunnable(f.getAbsolutePath(), file.getAbsolutePath()))
-    }
-    val f_py = new File(new File("analyzers"), name + ".py")
-    if(f_py.exists()) {
-      return Some(new ExecRunnable("python", f_py.getAbsolutePath(), file.getAbsolutePath()))
-    }
-    return None
-  }
-
 }
 
 class SnifferRunnable(file : File) extends ProcessRunnable {
@@ -45,7 +33,7 @@ class SnifferRunnable(file : File) extends ProcessRunnable {
     validSniffers match {
       case Nil => 
       case sniffer :: sniffers => {
-        resolveExecutable(sniffer.chain(), file) match {
+        ExecRunnable.resolveExecutable(sniffer.chain(), file) match {
           case Some(runnable) => {
             System.err.println("chaining")
             context.chain(runnable)

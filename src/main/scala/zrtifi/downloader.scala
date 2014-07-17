@@ -3,6 +3,7 @@ package com.github.jmccrae.zrtifi
 import java.net.{URL, MalformedURLException}
 import java.io.File
 import java.util.concurrent.Executors
+import ZrtifiSettings._
 
 object ZrtifiDownloader {
 
@@ -23,7 +24,12 @@ object ZrtifiDownloader {
     }
     val report = "report/" + bytesToHex(md5.digest(urlString.getBytes()))
 
-    backend.insertTriple(report, "", "<http://zrtifi.org/download>", "\"started\"")
+    backend.insertTriple(report, "", "<%sdownloadStatus>" format ZRTIFI_ONTOLOGY, "<%sstarted>" format ZRTIFI_ONTOLOGY)
+    backend.insertTriple(report, "", "<http://www.w3.org/2000/01/rdf-schema#label>", "\"Dataset from %s\"" format url.getHost())
+    backend.insertTriple(report, "", "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "<http://www.w3.org/ns/dcat#Dataset>")
+    backend.insertTriple(report, "", "<http://www.w3.org/ns/dcat#distribution>", "<%s%s#Distribution>" format (BASE_NAME, report))
+    backend.insertTriple(report, "Distribution", "<http://www.w3.org/ns/dcat#downloadURL>", "<%s>" format urlString)
+
     processManager.startThread(new DownloadExecutor(url, report, backend), report)
 
     return "/" + report
@@ -33,7 +39,7 @@ object ZrtifiDownloader {
 class DownloadExecutor(url : URL, report : String, backend : RDFBackend) extends ProcessRunnable {
   def run(context : ProcessContext) {
     val tmpFile = context.createTempFile(url.getPath())
-    var totalRead = 0
+    var totalRead = 0l
 
     val in = url.openStream()
     val out =  new java.io.FileOutputStream(tmpFile)
@@ -46,7 +52,10 @@ class DownloadExecutor(url : URL, report : String, backend : RDFBackend) extends
     out.flush
     out.close
     in.close
-    backend.insertTriple(report, "", "<http://zrtifi.org/download>", "\"completed\"")
+    backend.removeTriples(report, Some(""), Some("<%sdownloadStatus>" format ZRTIFI_ONTOLOGY))
+    backend.insertTriple(report, "", "<%sdownloadStatus>" format ZRTIFI_ONTOLOGY, "<%scompleted>" format ZRTIFI_ONTOLOGY)
+    backend.insertTriple(report, "Distribution", "<http://www.w3.org/ns/dcat#byteSize>",
+      "\"%d\"^^<http://www.w3.org/2001/XMLSchema#decimal>" format totalRead)
     context.chain(new SnifferRunnable(tmpFile))
   }
 }

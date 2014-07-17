@@ -15,10 +15,9 @@ object ZrtifiSettings {
   val DUMP_URI = "/zrtifi.nt.gz"
 
   // The extra namespaces to be abbreviated in HTML and RDF/XML documents if desired
-  val PREFIX1_URI = "http://www.example.com#"
-  val PREFIX1_QN = "ex1"
-  val PREFIX2_URI = "http://www.example.com#"
-  val PREFIX2_QN = "ex2"
+  val PREFIX1_QN = "zrtifi"
+  val PREFIX2_URI = "http://www.w3.org/ns/dcat#"
+  val PREFIX2_QN = "dcat"
   val PREFIX3_URI = "http://www.example.com#"
   val PREFIX3_QN = "ex3"
   val PREFIX4_URI = "http://www.example.com#"
@@ -52,4 +51,10 @@ object ZrtifiSettings {
 
   // Amount of time (seconds) to wait for external process
   val EXTERNAL_PROCESS_TIMEOUT = 7200
+  // The location of the Zrtifi internal URIs
+  val ZRTIFI_INTERNAL = "http://www.zrtifi.org/internal#"
+  // The Zrtifi ontology
+  val ZRTIFI_ONTOLOGY = "http://www.zrtifi.org/ontology#"
+  val PREFIX1_URI = ZRTIFI_ONTOLOGY
+
 }
