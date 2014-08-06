@@ -70,7 +70,6 @@ class ProcessManager(dataModel : RDFBackend) {
             statuses += id -> ("Running %s" format next.get.getClass.getName)
             System.err.println("Running %s" format next.get.getClass.getName)
             next.get.run(context)
-            println("finished running")
             next = context.next
           }
        } finally {
@@ -146,11 +145,11 @@ class ExecChainer {
   
   def chain : Option[ProcessRunnable] = nextTarget match {
     case Some(t) => nextExec match {
-      case Some("sniff") => { println("sniffing " + t) ; Some(new SnifferRunnable(t)) }
-      case Some(e) => { println("execute " + e) ; ExecRunnable.resolveExecutable(e, t) }
-      case None => { println( "No exec") ; None }
+      case Some("sniff") => Some(new SnifferRunnable(t))
+      case Some(e) => ExecRunnable.resolveExecutable(e, t)
+      case None => None
     }
-      case None => { println("No target") ; None }
+      case None => None
   }
 }
 
@@ -191,7 +190,6 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
         for(chain <- chainers.values) {
           chain.chain match {
             case Some(chain) => {
-              println("chaining")
               context.chain(chain)
             }
             case None => // stop
@@ -211,12 +209,11 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
       def processLine(line : String, lineNo : Int) { 
         line match {
           case tripleRegex(_, frag, prop, obj, _) => {
-            println("%s %s %s" format (frag, prop, obj))
             prop match {
               case zrtifiInternal(prop) => prop match {
                 case "next" => getChainer(frag).nextExec = Some(obj.slice(1,obj.size-1))
                 case "nextTarget" => getChainer(frag).nextTarget = Some(new File(obj.slice(1,obj.size-1)))
-                case _ => println("internal")// ignore internal URI
+                case _ => // ignore internal URI
               }
               case _ => context.addTriple(Option(frag).getOrElse(""), prop, obj)
             }
@@ -253,6 +250,5 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
         case x : InterruptedException =>
       }
     }
-    System.err.println("handler finished waiting")
   }
 }
