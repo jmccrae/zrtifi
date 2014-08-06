@@ -24,6 +24,7 @@ object ZrtifiDownloader {
     }
     val report = "report/" + bytesToHex(md5.digest(urlString.getBytes()))
 
+    backend.removeTriples(report)
     backend.insertTriple(report, "", "<%sdownloadStatus>" format ZRTIFI_ONTOLOGY, "<%sstarted>" format ZRTIFI_ONTOLOGY)
     backend.insertTriple(report, "", "<http://www.w3.org/2000/01/rdf-schema#label>", "\"Dataset from %s\"" format url.getHost())
     backend.insertTriple(report, "", "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "<http://www.w3.org/ns/dcat#Dataset>")

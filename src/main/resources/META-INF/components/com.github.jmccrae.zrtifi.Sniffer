@@ -1,4 +1,6 @@
 com.github.jmccrae.zrtifi.ZIPSniffer
 com.github.jmccrae.zrtifi.GZSniffer
 com.github.jmccrae.zrtifi.TarSniffer
+com.github.jmccrae.zrtifi.XMLSniffer
+com.github.jmccrae.zrtifi.RDFSniffer
 

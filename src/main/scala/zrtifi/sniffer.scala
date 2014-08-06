@@ -63,3 +63,15 @@ class TarSniffer extends Sniffer {
   def isInFormat(fileName : String, firstKilobyte : Array[Byte]) = fileName.endsWith(".tar")
   def chain() : String = "tar"
 }
+
+class XMLSniffer extends Sniffer {
+  def isInFormat(fileName : String, firstKilobyte : Array[Byte]) = fileName.endsWith(".xml")
+  def chain() : String = "xml"
+}
+
+class RDFSniffer extends Sniffer {
+  def isInFormat(fileName : String, firstKilobyte : Array[Byte]) = fileName.endsWith(".rdf") || fileName.endsWith(".nt") ||
+    fileName.endsWith(".ttl") || (fileName.endsWith(".xml") && new String(firstKilobyte).contains("<rdf:RDF"))
+  def chain() : String = "rapper"
+}
+

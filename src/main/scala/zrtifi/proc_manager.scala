@@ -4,6 +4,7 @@ import java.io.File
 import scala.collection.immutable.Queue
 import org.apache.commons.exec.{CommandLine, DefaultExecutor, DefaultExecuteResultHandler, ExecuteException, ExecuteWatchdog, PumpStreamHandler, LogOutputStream}
 import ZrtifiSettings._
+import java.util.UUID
 
 class ProcessManager(dataModel : RDFBackend) {
   private val processes = collection.mutable.Map[String,Thread]()
@@ -57,23 +58,23 @@ class ProcessManager(dataModel : RDFBackend) {
   def startThread(runnable : ProcessRunnable, rdfID : String) : String = {
     val id = math.abs(util.Random.nextInt).toString
     val context = new ProcessContextImpl(id)
+    context.addTriple("","<%sprocessing>" format ZRTIFI_ONTOLOGY,"\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>")
     val thread = new Thread(new Runnable {
       def run {
         try {
           statuses += id -> ("Running %s" format runnable.getClass.getName)
           System.err.println("Running %s" format runnable.getClass.getName)
           runnable.run(context)
-          /*this.synchronized {
-            wait(10000)
-          }*/
           var next = context.next
           while(next != None) {
             statuses += id -> ("Running %s" format next.get.getClass.getName)
             System.err.println("Running %s" format next.get.getClass.getName)
             next.get.run(context)
+            println("finished running")
             next = context.next
           }
-        } finally {
+       } finally {
+          context.removeTriples(Some(""),Some("<%sprocessing>" format ZRTIFI_ONTOLOGY))
           cleanUpProcess(id)
         }
       }
@@ -111,6 +112,12 @@ class ProcessManager(dataModel : RDFBackend) {
         case None => System.err.println("No rdfID for this process! (Should not happen)")
       }
     }
+    def removeTriples(frag : Option[String] = None, prop : Option[String] = None) {
+      rdfIDs.get(id) match {
+        case Some(rdfID) => dataModel.removeTriples(rdfID, frag, prop)
+        case None => System.err.println("No rdfID for this process! (Should not happen)")
+      }
+    }
   }
 
   def statusHTML : String = {
@@ -139,10 +146,11 @@ class ExecChainer {
   
   def chain : Option[ProcessRunnable] = nextTarget match {
     case Some(t) => nextExec match {
-      case Some(e) => ExecRunnable.resolveExecutable(e, t)
-      case None => None
+      case Some("sniff") => { println("sniffing " + t) ; Some(new SnifferRunnable(t)) }
+      case Some(e) => { println("execute " + e) ; ExecRunnable.resolveExecutable(e, t) }
+      case None => { println( "No exec") ; None }
     }
-      case None => None
+      case None => { println("No target") ; None }
   }
 }
 
@@ -166,17 +174,31 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
   val zrtifiInternal = ("<%s(.*)>" format java.util.regex.Pattern.quote(ZRTIFI_INTERNAL)).r
 
   def run(context : ProcessContext) {
+    val mutex = new Object()
     val cmdLine = new CommandLine(command)
     for(arg <- args) {
       cmdLine.addArgument(arg)
     }
-    val chain = new ExecChainer()
+    val chainers = collection.mutable.Map[String,ExecChainer]()
+    def getChainer(id : String) = chainers.getOrElse(id, {
+      val newChain = new ExecChainer()
+      chainers.put(id, newChain)
+      newChain
+    })
     val handler = new DefaultExecuteResultHandler() {
       override def onProcessComplete(exitValue : Int) {
         System.err.println("Finish process (status=%d): %s %s" format (exitValue, command, args.mkString(" ")))
-        chain.chain match {
-          case Some(chain) => context.chain(chain)
-          case None => // stop
+        for(chain <- chainers.values) {
+          chain.chain match {
+            case Some(chain) => {
+              println("chaining")
+              context.chain(chain)
+            }
+            case None => // stop
+          }
+        }
+        mutex.synchronized {
+          mutex.notify()
         }
       }
       override def onProcessFailed(e : ExecuteException) {
@@ -189,11 +211,12 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
       def processLine(line : String, lineNo : Int) { 
         line match {
           case tripleRegex(_, frag, prop, obj, _) => {
+            println("%s %s %s" format (frag, prop, obj))
             prop match {
               case zrtifiInternal(prop) => prop match {
-                case "next" => chain.nextExec = Some(obj.slice(1,obj.size-1))
-                case "nextTarget" => chain.nextTarget = Some(new File(obj.slice(1,obj.size-1)))
-                case _ => // ignore internal URI
+                case "next" => getChainer(frag).nextExec = Some(obj.slice(1,obj.size-1))
+                case "nextTarget" => getChainer(frag).nextTarget = Some(new File(obj.slice(1,obj.size-1)))
+                case _ => println("internal")// ignore internal URI
               }
               case _ => context.addTriple(Option(frag).getOrElse(""), prop, obj)
             }
@@ -210,8 +233,26 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
     executor.setWatchdog(watchdog)
     executor.setStreamHandler(psh)
     System.err.println("Start process: %s %s" format (command, args.mkString(" ")))
-    executor.execute(cmdLine, handler)
+    try {
+      executor.execute(cmdLine, handler)
+    } catch {
+      case x : org.apache.commons.exec.ExecuteException => {
+        val stepID = "step_" + UUID.randomUUID().toString()
+        context.addTriple("","<%step>" format ZRTIFI_ONTOLOGY, "<#%s>" format (stepID))
+        context.addTriple(stepID,"<%sstatus>" format ZRTIFI_ONTOLOGY, "<%serror>" format ZRTIFI_ONTOLOGY)
+        context.addTriple(stepID,"<%serror>" format ZRTIFI_ONTOLOGY, "\"%s\"" format x.getMessage())
+        
+      }
+    }
 
-    handler.waitFor()
+    //handler.waitFor()
+    mutex.synchronized {
+      try {
+        mutex.wait()
+      } catch {
+        case x : InterruptedException =>
+      }
+    }
+    System.err.println("handler finished waiting")
   }
 }
