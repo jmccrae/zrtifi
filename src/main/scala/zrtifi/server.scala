@@ -99,6 +99,21 @@ object RDFServer {
     resp.sendError(SC_NOT_IMPLEMENTED,
       renderHTML(YZ_NOT_IMPLEMENTED, message))
   }
+  def sendFile(resp : HttpServletResponse, fileName : String) {
+    val file = new File(resolve(fileName))
+    resp.setStatus(200)
+    resp.setContentType(java.nio.file.Files.probeContentType(file.toPath()))
+    val out = resp.getOutputStream
+    val in = new java.io.FileInputStream(file)
+    var c = 0
+    val buf = new Array[Byte](4096)
+    while({c = in.read(buf); c != -1}) {
+      out.write(buf,0,c)
+    }
+    out.flush
+    out.close
+    in.close
+  }
   
   def mimeToResultType(mime : String) = mime match {
     case "text/html" => Some(html)
@@ -181,9 +196,16 @@ class RDFServer(db : String) extends HttpServlet {
   private val mimeTypes = Map(
      )
   val backend = new RDFBackend(db)
-  val processManager = new ProcessManager(backend)
+  var processManager : Option[ProcessManager] = None
+  
+  override def init() {
+    super.init()
+    processManager = Some(new ProcessManager(backend,
+    Option(getServletConfig().getInitParameter("tmpdir")).getOrElse(System.getProperty("java.io.tmpdir"))))
+  }
   lazy val backendModel : Model = ModelFactory.createModelForGraph(backend.graph)
-  private val resourceURIRegex = "^/(.*?)(|\\.nt|\\.html|\\.rdf|\\.ttl|\\.json)$".r
+  private val resourceURIRegex = "^/(report/.*?)(|\\.nt|\\.html|\\.rdf|\\.ttl|\\.json)$".r
+  private val badgeURIRegex = "^/badge/(.*?)(\\.png)$".r
 
   def sparqlQuery(query : String, mimeType : ResultType, defaultGraphURI : Option[String],
     resp : HttpServletResponse, timeout : Int = 10) {
@@ -326,7 +348,8 @@ class RDFServer(db : String) extends HttpServlet {
       if(req.getMethod().equalsIgnoreCase("post") &&
         req.getParameter("url") != null) {
          try {
-           resp.sendRedirect(ZrtifiDownloader.startChain(req.getParameter("url"), backend, processManager))
+           resp.sendRedirect(ZrtifiDownloader.startChain(req.getParameter("url"), backend, processManager.getOrElse(throw new
+             RuntimeException), Option(req.getParameter("name"))))
          } catch {
            case x : ZrtifiDownloadException => resp.respond("text/html", SC_OK) {
              out => out.print(renderHTML(DISPLAY_NAME, slurp(resolve("html/bad_url.html"))))
@@ -340,7 +363,7 @@ class RDFServer(db : String) extends HttpServlet {
       }
     } else if(PROCESS_STATUS_PATH != null && uri == PROCESS_STATUS_PATH) {
       resp.respond("text/html",SC_OK) {
-        out => out.print(renderHTML(DISPLAY_NAME, processManager.statusHTML))
+        out => out.print(renderHTML(DISPLAY_NAME, processManager.getOrElse(throw new RuntimeException).statusHTML))
       }
     } else if(LICENSE_PATH != null && uri == LICENSE_PATH) {
       resp.respond("text/html",SC_OK) {
@@ -358,10 +381,14 @@ class RDFServer(db : String) extends HttpServlet {
           }
           search(resp, query, prop)
         } else {
-          send400(resp, YZ_NO_QUERY)
+          resp.respond("text/html", SC_OK) {
+            out => out.print(renderHTML(DISPLAY_NAME, slurp(resolve("html/search.html"))))
+          }
         }
       } else {
-        send400(resp, YZ_NO_QUERY)
+        resp.respond("text/html", SC_OK) {
+          out => out.print(renderHTML(DISPLAY_NAME, slurp(resolve("html/search.html"))))
+        }
       }
     } else if(uri == DUMP_URI) {
       throw new UnsupportedOperationException("TO DO")
@@ -378,12 +405,12 @@ class RDFServer(db : String) extends HttpServlet {
             Option(qs.get("default-graph-uri")).map(_(0)), resp)
         } else {
           resp.respond("text/html", SC_OK) {
-            out => out.print(DISPLAY_NAME, slurp(resolve("html/sparql.html")))
+            out => out.print(renderHTML(DISPLAY_NAME, slurp(resolve("html/sparql.html"))))
           }
         }
       } else {
         resp.respond("text/html", SC_OK) {
-          out => out.print(DISPLAY_NAME, slurp(resolve("html/sparql.html")))
+          out => out.print(renderHTML(DISPLAY_NAME, slurp(resolve("html/sparql.html"))))
         }
       }
     } else if(LIST_PATH != null && (uri == LIST_PATH || uri == (LIST_PATH + "/"))) {
@@ -423,6 +450,28 @@ class RDFServer(db : String) extends HttpServlet {
           }
         }
       }
+    } else if(uri.matches(badgeURIRegex.toString)) {
+      val badgeURIRegex(_id,_) = uri
+      val id = "report/" + _id
+      val modelOption = backend.lookup(id)
+      modelOption match {
+        case None => sendFile(resp, "assets/unknown.png")
+        case Some(m) => {
+          val res = m.createResource(BASE_NAME + id)
+          res.getProperty(m.createProperty(ZRTIFI_ONTOLOGY, "status")) match {
+            case null => sendFile(resp, "assets/bad.png")
+            case stat => stat.getObject().toString() match {
+              case "http://www.zrtifi.org/ontology#success" => sendFile(resp, "assets/good.png")
+              case "http://www.zrtifi.org/ontology#warning" => sendFile(resp, "assets/warning.png")
+              case "http://www.zrtifi.org/ontology#error" => sendFile(resp, "asserts/bad.pnb")
+              case _ => {
+                println(stat.getObject().toString())
+                sendFile(resp, "assets/unknown.png")
+              }
+            }
+          }
+        }
+      }
     } else {
       send404(resp)
     }
@@ -453,13 +502,13 @@ class RDFServer(db : String) extends HttpServlet {
         if(offset > 0) {
             buf ++= "<li class='previous'><a href='/list/?offset=%d'>&lt;&lt;</a></li>" format (max(offset - limit, 0))
         } else {
-            buf ++= "<li class='previous disabled'><a href='/list/?offset=%d'>&lt;&lt;</a></li>" format (max(offset - limit, 0))
+            buf ++= "<li class='previous disabled'><a>&lt;&lt;</a></li>"
         }
-        buf ++= "<li>%d - %d</li>" format (offset, offset + results.size)
+        buf ++= "<li>%d - %d</li>" format (offset+1, offset + results.size)
         if(hasMore) {
-            buf ++= "<li class='next'><a href='/list/?offset=%s' class='btn btn-default'>&gt;&gt;</a></li>" format (offset + limit)
+            buf ++= "<li class='next'><a href='/list/?offset=%s'>&gt;&gt;</a></li>" format (offset + limit)
         } else {
-            buf ++= "<li class='next disabled'><a href='/list/?offset=%s' class='btn btn-default'>&gt;&gt;</a></li>" format (offset + limit)
+            buf ++= "<li class='next disabled'><a>&gt;&gt;</a></li>"
         }
         buf ++= "</ul>"
         resp.respond("text/html", SC_OK) {
@@ -492,9 +541,9 @@ class RDFServer(db : String) extends HttpServlet {
     }
   }
 
-  def buildListTable(values : List[String]) = {
-    for(value <- values) yield {
-      "<tr class='rdf_search_full table-active'><td><a href='/%s'>%s</a></td></tr>" format (value, value)
+  def buildListTable(values : List[(String, String)]) = {
+    for((link, label) <- values) yield {
+      "<tr class='rdf_search_full table-active'><td><a href='/%s'>%s</a></td></tr>" format (link, label)
     }
   }
 

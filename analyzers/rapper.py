@@ -20,7 +20,7 @@ if __name__ == "__main__":
         m = re.match("rapper: Parsing returned (\\d+) triples", line)
         if m:
             triples = int(m.group(1))
-            print("<#rdf_step_%s> <http://rdfs.org/ns/void#triples> \"%d\"^^<http://www.w3.org/2001/XMLSchema#integer> ." % (step_id, triples))
+            print("<> <http://rdfs.org/ns/void#triples> \"%d\"^^<http://www.w3.org/2001/XMLSchema#integer> ." % (triples))
         elif line.startswith("rapper: Parsing URI"):
             pass
         elif line.startswith("rapper: Error -"):

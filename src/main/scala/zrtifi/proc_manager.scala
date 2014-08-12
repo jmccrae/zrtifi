@@ -6,7 +6,7 @@ import org.apache.commons.exec.{CommandLine, DefaultExecutor, DefaultExecuteResu
 import ZrtifiSettings._
 import java.util.UUID
 
-class ProcessManager(dataModel : RDFBackend) {
+class ProcessManager(dataModel : RDFBackend, tmpFolder : String) {
   private val processes = collection.mutable.Map[String,Thread]()
   private val folders = collection.mutable.Map[String,File]()
   private val statuses = collection.mutable.Map[String,String]()
@@ -40,7 +40,7 @@ class ProcessManager(dataModel : RDFBackend) {
   def folderForProcess(id : String) = folders.get(id) match {
     case Some(file) => file
     case None => {
-      val tmpFile = new File(new File(System.getProperty("java.io.tmpdir")), "zrtifi" + id)
+      val tmpFile = new File(new File(tmpFolder), "zrtifi" + id)
       folders += id -> tmpFile
       tmpFile.mkdirs()
       tmpFile
@@ -57,8 +57,7 @@ class ProcessManager(dataModel : RDFBackend) {
 
   def startThread(runnable : ProcessRunnable, rdfID : String) : String = {
     val id = math.abs(util.Random.nextInt).toString
-    val context = new ProcessContextImpl(id)
-    context.addTriple("","<%sprocessing>" format ZRTIFI_ONTOLOGY,"\"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>")
+    val context = new ProcessContextImpl(id, "Distribution")
     val thread = new Thread(new Runnable {
       def run {
         try {
@@ -73,7 +72,7 @@ class ProcessManager(dataModel : RDFBackend) {
             next = context.next
           }
        } finally {
-          context.removeTriples(Some(""),Some("<%sprocessing>" format ZRTIFI_ONTOLOGY))
+         context.removeTriples(Some(""), Some("<%svalidationStatus>" format ZRTIFI_ONTOLOGY))
           cleanUpProcess(id)
         }
       }
@@ -84,8 +83,9 @@ class ProcessManager(dataModel : RDFBackend) {
     return id
   }
 
-  private class ProcessContextImpl(id : String) extends ProcessContext {
+  private class ProcessContextImpl(id : String, _currentFrag : String) extends ProcessContext {
     var chains = Queue[ProcessRunnable]()
+    var currentFrag = _currentFrag
     def tempFolder = folderForProcess(id)
     def createTempFile(path : String) = ProcessManager.this.createTempFile(id, path)
     def chain(runnable : ProcessRunnable) { chains = chains.enqueue(runnable) }
@@ -137,11 +137,14 @@ trait ProcessContext {
   def chain(runnable : ProcessRunnable) : Unit
   def next : Option[ProcessRunnable]
   def addTriple(frag : String, property : String, obj : String) : Unit
+  def removeTriples(frag : Option[String], property : Option[String]) : Unit
+  var currentFrag : String
 }
 
 class ExecChainer {
   var nextTarget : Option[File] = None
   var nextExec : Option[String] = None
+  var nextFrag : Option[String] = None
   
   def chain : Option[ProcessRunnable] = nextTarget match {
     case Some(t) => nextExec match {
@@ -171,6 +174,7 @@ object ExecRunnable {
 class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
   val tripleRegex = "<(#([^>]*))?>\\s+(<[^>]+>)\\s+(\".*?(?<!\\\\)\"(|@[\\w-]+|\\^\\^<[^>]+>)|<[^>]+>)\\s*\\.\\s*".r
   val zrtifiInternal = ("<%s(.*)>" format java.util.regex.Pattern.quote(ZRTIFI_INTERNAL)).r
+  val zrtifiOntology = ("<%s(.*)>" format java.util.regex.Pattern.quote(ZRTIFI_ONTOLOGY)).r
 
   def run(context : ProcessContext) {
     val mutex = new Object()
@@ -182,6 +186,7 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
     def getChainer(id : String) = chainers.getOrElse(id, {
       val newChain = new ExecChainer()
       chainers.put(id, newChain)
+      newChain.nextFrag = Some(id)
       newChain
     })
     val handler = new DefaultExecuteResultHandler() {
@@ -189,8 +194,9 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
         System.err.println("Finish process (status=%d): %s %s" format (exitValue, command, args.mkString(" ")))
         for(chain <- chainers.values) {
           chain.chain match {
-            case Some(chain) => {
-              context.chain(chain)
+            case Some(c) => {
+              context.currentFrag = chain.nextFrag.getOrElse("Distribution")
+              context.chain(c)
             }
             case None => // stop
           }
@@ -213,9 +219,19 @@ class ExecRunnable(command : String, args : String*) extends ProcessRunnable {
               case zrtifiInternal(prop) => prop match {
                 case "next" => getChainer(frag).nextExec = Some(obj.slice(1,obj.size-1))
                 case "nextTarget" => getChainer(frag).nextTarget = Some(new File(obj.slice(1,obj.size-1)))
+
                 case _ => // ignore internal URI
               }
-              case _ => context.addTriple(Option(frag).getOrElse(""), prop, obj)
+              case zrtifiOntology("status") => obj match {
+                case "<http://www.zrtifi.org/ontology#success>" => context.addTriple(Option(frag).getOrElse(context.currentFrag), prop, obj)
+                case "<http://www.zrtifi.org/ontology#error>" => {
+                  context.removeTriples(Some(""),Some(prop))
+                  context.addTriple("",prop,"<%warning>" format ZRTIFI_ONTOLOGY)
+                  context.addTriple(Option(frag).getOrElse(context.currentFrag), prop, obj)
+                }
+                case _ => context.addTriple(Option(frag).getOrElse(context.currentFrag), prop, obj)
+              }
+              case _ => context.addTriple(Option(frag).getOrElse(context.currentFrag), prop, obj)
             }
           }
           case _ => System.err.println("Ignoring STDOUT: " + line)

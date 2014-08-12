@@ -1,1 +1,37 @@
-TODO
+<div class="row">
+    <div class="well">
+        <form class="form-horizontal" method="get">
+            <fieldset>
+                <div class="form-group">
+                    <label for="property" class="col-lg-2 control-label" style="font-size:140%;">Query</label>
+                    <div class="col-lg-10">
+                        <textarea class="form-control" rows="10" id="query" name="query">PREFIX rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX zrtifi: &lt;http://www.zritif.org/ontology#&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX void: &lt;http://rdfs.org/ns/void#&gt;
+
+SELECT * WHERE {
+  ?dataset a dcat:Dataset
+} limit 10
+                        </textarea>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="query" class="col-lg-2 control-label" style="font-size:140%;">Default Graph URI</label>
+                    <div class="col-lg-10">
+                        <input type="text" class="form-control" id="default-graph-uri" value="" name="default-graph-uri">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-lg-offset-11 col-lg-1">
+                        <button class="btn btn-default">Search</button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+

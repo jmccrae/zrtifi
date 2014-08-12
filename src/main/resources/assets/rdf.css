@@ -125,3 +125,7 @@ tr.sparql_body {
 .pager li>a:hover {
     color:#007fff;
 }
+
+img#md5_img {
+    padding-bottom: 40px;
+}

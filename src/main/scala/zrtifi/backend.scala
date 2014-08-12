@@ -110,8 +110,9 @@ class RDFBackend(db : String) {
     }
   }
 
+  private def litFromN3(lit : String) = lit.slice(1,lit.lastIndexOf("\""))
 
-  def search(query : String, property : Option[String], limit : Int = 20) : List[String] = {
+  def search(query : String, property : Option[String], limit : Int = 20) : List[(String, String)] = {
     val ps = property match {
       case Some(p) => {
         val ps2 = conn.prepareStatement("select distinct subject from triples where property=? and object like ? limit ?")
@@ -127,16 +128,19 @@ class RDFBackend(db : String) {
         ps2
       }
     }
-    val results = collection.mutable.ListBuffer[String]()
+    val results = collection.mutable.ListBuffer[(String, String)]()
     val rs = ps.executeQuery()
     while(rs.next()) {
-      results += rs.getString(1)
+      val ps3 = conn.prepareStatement("select object from triples where subject=? and property='<http://www.w3.org/2000/01/rdf-schema#label>'")
+      ps3.setString(1, rs.getString(1))
+      val rs2 = ps3.executeQuery()    
+      results += ((rs.getString(1), litFromN3(rs2.getString(1))))
     }
     return results.toList
   }
 
-  def listResources(offset : Int, limit : Int) : (Boolean,List[String]) = {
-    val ps = conn.prepareStatement("select distinct subject from triples limit ? offset ?")
+  def listResources(offset : Int, limit : Int) : (Boolean,List[(String, String)]) = {
+    val ps = conn.prepareStatement("select distinct subject, object from triples where property='<http://www.w3.org/2000/01/rdf-schema#label>' limit ? offset ?")
     ps.setInt(1, limit + 1)
     ps.setInt(2, offset)
     val rs = ps.executeQuery()
@@ -144,9 +148,9 @@ class RDFBackend(db : String) {
     if(!rs.next()) {
       return (false, Nil)
     }
-    var results = collection.mutable.ListBuffer[String]()
+    var results = collection.mutable.ListBuffer[(String, String)]()
     do {
-      results += rs.getString(1)
+      results += ((rs.getString(1), litFromN3(rs.getString(2))))
       n += 1
     } while(rs.next())
 
@@ -159,12 +163,19 @@ class RDFBackend(db : String) {
   }
 
   def insertTriple(id : String, frag : String, prop : String, obj : String) {
+    try {
     val ps1 = conn.prepareStatement("insert into triples values (?, ?, ?, ?, 0)")
     ps1.setString(1, RDFBackend.unicodeEscape(id))
     ps1.setString(2, RDFBackend.unicodeEscape(frag))
     ps1.setString(3, RDFBackend.unicodeEscape(prop))
     ps1.setString(4, RDFBackend.unicodeEscape(obj))
     ps1.execute()
+    } catch {
+      case x : Exception => {
+        println("Failed to add triple %s#%s %s %s" format (id, frag, prop, obj))
+        throw x
+      }
+    }
   }
 
   def removeTriples(id : String, frag : Option[String] = None, prop : Option[String] = None) {

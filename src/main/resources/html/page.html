@@ -5,6 +5,7 @@
     <title>Zrtifi - ${title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/assets/bootstrap.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Rambla' rel='stylesheet' type='text/css'>
     <style>
 .circle {
     width: 100px;
@@ -14,12 +15,36 @@
     border-radius: 50px; 
     background-color: black;
     margin-left:47%;
+    position:relative;
+    float:right;
+    left:-47%;
 }
 .circle h3 {
     color:white;
     line-height:100px;
     text-align:center;
     vertical-align:middle;
+    margin: 0px;
+}
+.circle_spacer {
+    height: 50px;
+}
+body, h1, h2, h3, h4, h5 {
+    font-family: 'Rambla', sans-serif;
+}
+.zrtifi_title {
+    letter-spacing: 5px;
+}
+.nav_btns {
+    text-align:right;
+    vertical-align:middle;
+    line-height:70px;
+    display:inline;
+    padding-left:20px;
+}
+.nav_btns a {
+    color:white;
+    font-size:20px;
 }
     </style>
     <script type="text/javascript" src="/assets/md5-min.js"></script>
@@ -30,7 +55,8 @@ $("#url").keyup(function (data) {
     var hash = hex_md5($("#url").val());
     $('.md5').html(hash);
     $('#md5_a').attr('href','/report/' + hash);
-    $('#mds_img').attr('src','/badge/' + hash + '.png');
+    $('#md5_a2').attr('href','/report/' + hash);
+    $('#md5_img').attr('src','/badge/' + hash + '.png');
 });
 });
 
@@ -53,12 +79,22 @@ $("#url").keyup(function (data) {
     </script>
   </head>
   <body>
+  <main style="background-color:#7c89c0;">
   <div class="container">
       <div class="row">
-          <center>
-              <h1><img src="/assets/rosette.png" style="max-width:100px;"/><span style="font-size:300%;">zrtifi</span></h1>
-          </center>
+          <div class="col-lg-4">
+              <h1 class="zrtifi_title"><img src="/assets/rosettei.png" style="max-width:45px;vertical-align:text-top;"/><span style="font-size:140%;color:white;">zrtifi</span></h1>
+          </div>
+          <div class="col-lg-3 pull-right">
+              <h3 class="nav_btns"> <a href="/">Home</a></h3>
+              <h3 class="nav_btns"> <a href="/list">Browse</a></h3>
+              <h3 class="nav_btns"> <a href="/search">Search</a></h3>
+          </div>
       </div>              
+  </div>
+  </main>
+  <div class="container">
+<br/>
       ${content}
   </div>
 </body>

@@ -13,12 +13,15 @@
     <!ENTITY prefix8 "${prefix8uri}">
     <!ENTITY prefix9 "${prefix9uri}">
     <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY zrtifi "http://www.zrtifi.org/ontology#">
 ]>
  
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
 xmlns:base="${base}"
+xmlns:zrtifi="http://www.zrtifi.org/ontology#"
 xmlns:ontology="${base}ontology">
 
   <xsl:strip-space elements="*"/>
@@ -73,14 +76,28 @@ xmlns:ontology="${base}ontology">
   <p>
       <h1>
           <xsl:choose>
+              <xsl:when test="rdfs:label">
+                  <xsl:value-of select="rdfs:label"/>
+              </xsl:when>
               <xsl:when test="count(*) = 1">
-                  <xsl:call-template name="display-uri">
-                      <xsl:with-param name="text" select="*/@rdf:about"/>
-                  </xsl:call-template>
+                      <xsl:choose>
+                          <xsl:when test="*/rdfs:label">
+                              <xsl:value-of select="*/rdfs:label"/>
+                          </xsl:when>
+                          <xsl:otherwise>
+                              <xsl:call-template name="display-uri">
+                                  <xsl:with-param name="text" select="*/@rdf:about"/>
+                              </xsl:call-template>
+                          </xsl:otherwise>
+                     </xsl:choose>
               </xsl:when>
               <xsl:otherwise>RDF Document</xsl:otherwise>
           </xsl:choose>
-          <img src="/assets/rdf_w3c_icon.48.gif" height="28px" onclick="toggle_rdf_format_list();" style="float:right;"/>
+          <span style="float:right;">
+              <img src="{concat('/badge',substring-after(*/@rdf:about,'${base}report'),'.png')}" height="28px"/>
+              &#160;&#160;
+              <img src="/assets/rdf_w3c_icon.48.gif" height="28px" onclick="toggle_rdf_format_list();"/>
+          </span>
       </h1>
       <xsl:call-template name="rdf_links"/>
       <xsl:for-each select="*">
@@ -98,6 +115,14 @@ xmlns:ontology="${base}ontology">
           <xsl:call-template name="forprop"/>
       </xsl:for-each>
   </p>
+  <xsl:if test="*/zrtifi:validationStatus/@rdf:resource='&zrtifi;inProgress'">
+      <script type="text/javascript">
+          <xsl:text>
+            setTimeout(function() {
+            window.location.reload(1)
+            }, 10000);</xsl:text>
+       </script>
+  </xsl:if>
 </xsl:template>
 
 <xsl:template name="forprop">

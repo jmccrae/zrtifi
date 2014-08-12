@@ -19,7 +19,7 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
     dbFile = File.createTempFile("test",".db")
     rdfServer = new RDFServer(dbFile.getPath())
     rdfServer.backend.init()
-    rdfServer.backend.insertTriple("test_resource","","<http://www.w3.org/2000/01/rdf-schema#label>", "\"test\"@eng")
+    rdfServer.backend.insertTriple("report/test_resource","","<http://www.w3.org/2000/01/rdf-schema#label>", "\"test\"@eng")
 
   }
 
@@ -107,7 +107,7 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
 
   "server" should "convert RDF/XML to HTML" in {
     val model = ModelFactory.createDefaultModel()
-    model.createResource(BASE_NAME + "test_resource").
+    model.createResource(BASE_NAME + "report/test_resource").
       addProperty(model.createProperty("http://www.w3.org/2000/01/rdf-schema#", "label"),
         model.createLiteral("test"))
     val result = rdfServer.rdfxmlToHtml(model)
@@ -118,7 +118,7 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
     val mockResponse = mock[HttpServletResponse]
     val mockRequest = mock[HttpServletRequest]
     val out = new StringWriter()
-    when(mockRequest.getPathInfo()) thenReturn "/test_resource"
+    when(mockRequest.getPathInfo()) thenReturn "/report/test_resource"
     when(mockResponse.getWriter()) thenReturn new PrintWriter(out)
     rdfServer.service(mockRequest, mockResponse)
     verify(mockResponse).setStatus(200)
@@ -129,7 +129,7 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
     val out = new StringWriter()
     when(mockResponse.getWriter()) thenReturn new PrintWriter(out)
     rdfServer.listResources(mockResponse, 0)
-    assert(out.toString() contains "href='/test_resource'")
+    assert(out.toString() contains "href='/report/test_resource'")
   }
 
   "server" should "search" in {
@@ -137,10 +137,10 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
     val out = new StringWriter()
     when(mockResponse.getWriter()) thenReturn new PrintWriter(out)
     rdfServer.search(mockResponse, "test", Some("http://www.w3.org/2000/01/rdf-schema#label"))
-    assert(out.toString() contains "href='/test_resource")
+    assert(out.toString() contains "href='/report/test_resource")
   }
 
   "server" should "build list table" in {
-    assert(rdfServer.buildListTable(List("test")).mkString("\n") contains "href='/test'")
+    assert(rdfServer.buildListTable(List(("test","test"))).mkString("\n") contains "href='/test'")
   }
 }

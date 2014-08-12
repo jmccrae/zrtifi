@@ -9,6 +9,10 @@
   <servlet>
     <servlet-name>yuzu</servlet-name>
     <servlet-class>com.github.jmccrae.zrtifi.ZrtifiServlet</servlet-class>
+    <init-param>
+        <param-name>tmpdir</param-name>
+        <param-value>/data/tmp</param-value>
+    </init-param>
   </servlet>
 
   <servlet-mapping>

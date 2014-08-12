@@ -9,7 +9,17 @@ object ZrtifiDownloader {
 
   val md5 = java.security.MessageDigest.getInstance("MD5")
 
-  def startChain(urlString : String, backend : RDFBackend, processManager : ProcessManager) : String = {
+  private def escapeLiteral(literal : String) = "\"" + (
+    for(c <- literal) yield {
+      if(c > 128) {
+        "\\u%04x" format c.toInt
+      } else {
+        c
+      }
+    }).mkString("") + "\""
+
+
+  def startChain(urlString : String, backend : RDFBackend, processManager : ProcessManager, name : Option[String]) : String = {
     val url = try {
       new URL(urlString)
     } catch {
@@ -25,15 +35,18 @@ object ZrtifiDownloader {
     val report = "report/" + bytesToHex(md5.digest(urlString.getBytes()))
 
     backend.removeTriples(report)
-    backend.insertTriple(report, "", "<%sdownloadStatus>" format ZRTIFI_ONTOLOGY, "<%sstarted>" format ZRTIFI_ONTOLOGY)
-    backend.insertTriple(report, "", "<http://www.w3.org/2000/01/rdf-schema#label>", "\"Dataset from %s\"" format url.getHost())
+    name match {
+      case Some(x) if x != "" => backend.insertTriple(report, "", "<http://www.w3.org/2000/01/rdf-schema#label>", escapeLiteral(x))
+      case _ => backend.insertTriple(report, "", "<http://www.w3.org/2000/01/rdf-schema#label>", "\"Dataset from %s\"" format url.getHost())
+    }
     backend.insertTriple(report, "", "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "<http://www.w3.org/ns/dcat#Dataset>")
     backend.insertTriple(report, "", "<http://www.w3.org/ns/dcat#distribution>", "<%s%s#Distribution>" format (BASE_NAME, report))
     backend.insertTriple(report, "Distribution", "<http://www.w3.org/ns/dcat#downloadURL>", "<%s>" format urlString)
+    backend.insertTriple(report, "", "<%svalidationStatus>" format ZRTIFI_ONTOLOGY, "<%sinProgress>" format ZRTIFI_ONTOLOGY)
 
     processManager.startThread(new DownloadExecutor(url, report, backend), report)
 
-    return "/" + report
+    return report
   }
 }
 
@@ -53,8 +66,7 @@ class DownloadExecutor(url : URL, report : String, backend : RDFBackend) extends
     out.flush
     out.close
     in.close
-    backend.removeTriples(report, Some(""), Some("<%sdownloadStatus>" format ZRTIFI_ONTOLOGY))
-    backend.insertTriple(report, "", "<%sdownloadStatus>" format ZRTIFI_ONTOLOGY, "<%scompleted>" format ZRTIFI_ONTOLOGY)
+    backend.insertTriple(report, "", "<%sstatus>" format ZRTIFI_ONTOLOGY, "<%ssuccess>" format ZRTIFI_ONTOLOGY)
     backend.insertTriple(report, "Distribution", "<http://www.w3.org/ns/dcat#byteSize>",
       "\"%d\"^^<http://www.w3.org/2001/XMLSchema#decimal>" format totalRead)
     context.chain(new SnifferRunnable(tmpFile))

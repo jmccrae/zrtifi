@@ -26,7 +26,9 @@ if __name__ == "__main__":
                     file_id = str(uuid4())
                     print("<#file_%s> <http://www.zrtifi.org/internal#next> <sniff> ." % file_id)
                     print("<#file_%s> <http://www.zrtifi.org/internal#nextTarget> <file:%s> ." % (file_id, dir + os.sep + filename))
-            print("<#zip_step_%s> <%sstatus> <%ssuccess> ." % (step_id, ZRTIFI_ONTOLOGY, ZRTIFI_ONTOLOGY))
+                    print("<> <%scontains> <#file_%s> ." % (ZRTIFI_ONTOLOGY, file_id))
+                    print("<#file_%s> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> ." % file_id)
+             print("<#zip_step_%s> <%sstatus> <%ssuccess> ." % (step_id, ZRTIFI_ONTOLOGY, ZRTIFI_ONTOLOGY))
         else:
             print("<#zip_step_%s> <%serror> \"file does not end in .zip\"@en ." % (step_id, ZRTIFI_ONTOLOGY))
             print("<#zip_step_%s> <%sstatus> <%sfailed> ." % (step_id, ZRTIFI_ONTOLOGY, ZRTIFI_ONTOLOGY))
