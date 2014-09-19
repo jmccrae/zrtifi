@@ -56,5 +56,7 @@ object ZrtifiSettings {
   // The Zrtifi ontology
   val ZRTIFI_ONTOLOGY = "http://www.zrtifi.org/ontology#"
   val PREFIX1_URI = ZRTIFI_ONTOLOGY
+  // Where the servlet is deployed
+  val DEPLOY_PATH = "/zrtifi/"
 
 }

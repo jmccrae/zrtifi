@@ -211,83 +211,21 @@ class RDFBackend(db : String) {
     }
   }
 
+  private var isInitialized = false
   def init() {
-//  def load(inputStream : java.io.InputStream) {
-//    def splitUri(subj : String) : (String, String) = {
-//      val (id2, frag) = if(subj contains '#') {
-//        (subj.slice(BASE_NAME.length, subj.indexOf('#')),
-//          subj.drop(subj.indexOf('#') + 1))
-//      } else {
-//        (subj.drop(BASE_NAME.length), "")
-//      }
-//      val id = if(id2.endsWith(".rdf") || id2.endsWith(".ttl") || id2.endsWith(".nt") || id2.endsWith(".json") || id2.endsWith(".xml")) {
-//        System.err.println("File type at end of name (%s) dropped\n" format id2)
-//        id2.take(id2.lastIndexOf("."))
-//      } else {
-//        id2
-//      }
-//      (id,frag)
-//    }
-    val cursor = conn.createStatement()
-    val oldAutocommit = conn.getAutoCommit()
-    try {
-      conn.setAutoCommit(false)
-      cursor.execute("create table if not exists [triples] ([subject] TEXT, [fragment] TEXT, property TEXT NOT NULL, object TEXT NOT NULL, inverse INT DEFAULT 0)")
-      cursor.execute("create index if not exists k_triples_subject ON [triples] ( subject )")
-//      if(SPARQL_ENDPOINT == None) {
-//        cursor.execute("create index if not exists k_triples_fragment ON [triples] ( fragment )")
-//        cursor.execute("create index if not exists k_triples_property ON [triples] ( property )")
-//        cursor.execute("create index if not exists k_triples_object ON [triples] ( object )")
-//      }
-//      var linesRead = 0
-//      for(line <- io.Source.fromInputStream(inputStream).getLines) {
-//        linesRead += 1
-//        if(linesRead % 100000 == 0) {
-//          System.err.print(".")
-//          System.err.flush()
-//        }
-//        val e = line.split(" ")
-//        val subj = e(0).drop(1).dropRight(1)
-//        if(subj.startsWith(BASE_NAME)) {
-//          val (id, frag) = splitUri(subj)
-//          val prop = e(1)
-//          val obj = e.drop(2).dropRight(1).mkString(" ")
-//          val ps1 = conn.prepareStatement("insert into triples values (?, ?, ?, ?, 0)")
-//          ps1.setString(1, RDFBackend.unicodeEscape(id))
-//          ps1.setString(2, RDFBackend.unicodeEscape(frag))
-//          ps1.setString(3, RDFBackend.unicodeEscape(prop))
-//          ps1.setString(4, RDFBackend.unicodeEscape(obj))
-//          ps1.execute()
-//          /* TODO: Causes all kinds of weird issues with HTML generation, fix later
-//           * if(obj.startsWith("<"+BASE_NAME)) {
-//            val (id2, frag2) = splitUri(obj)
-//            val ps2 = conn.prepareStatement("insert into triples values (?, ?, ?, ?, 1)")
-//            ps2.setString(1, id2)
-//            ps2.setString(2, frag2)
-//            ps2.setString(3, prop)
-//            ps2.setString(4, obj)
-//            ps2.execute()
-//          }*/
-//        } else if(subj.startsWith("_:")) {
-//          val (id, frag) = ("<BLANK>", subj.drop(2))
-//          val prop = e(1)
-//          val obj = e.drop(2).dropRight(1).mkString(" ")
-//          val ps1 = conn.prepareStatement("insert into triples values (?, ?, ?, ?, 0)")
-//          ps1.setString(1, RDFBackend.unicodeEscape(id))
-//          ps1.setString(2, RDFBackend.unicodeEscape(frag))
-//          ps1.setString(3, RDFBackend.unicodeEscape(prop))
-//          ps1.setString(4, RDFBackend.unicodeEscape(obj))
-//          ps1.execute()
-//        }
-//
-//      }
-//      if(linesRead > 100000) {
-//        System.err.println()
-//      }
-    } finally {
-      cursor.close()
-      conn.commit()
-      conn.setAutoCommit(oldAutocommit)
+    if(!isInitialized) {
+      val cursor = conn.createStatement()
+      val oldAutocommit = conn.getAutoCommit()
+      try {
+        conn.setAutoCommit(false)
+        cursor.execute("create table if not exists [triples] ([subject] TEXT, [fragment] TEXT, property TEXT NOT NULL, object TEXT NOT NULL, inverse INT DEFAULT 0)")
+        cursor.execute("create index if not exists k_triples_subject ON [triples] ( subject )")
+      } finally {
+        cursor.close()
+        conn.commit()
+        conn.setAutoCommit(oldAutocommit)
+      }
+      isInitialized = true
     }
   }
 }

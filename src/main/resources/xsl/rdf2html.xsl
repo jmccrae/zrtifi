@@ -94,9 +94,9 @@ xmlns:ontology="${base}ontology">
               <xsl:otherwise>RDF Document</xsl:otherwise>
           </xsl:choose>
           <span style="float:right;">
-              <img src="{concat('/badge',substring-after(*/@rdf:about,'${base}report'),'.png')}" height="28px"/>
+              <img src="{concat('${deploy}badge',substring-after(*/@rdf:about,'${base}report'),'.png')}" height="28px"/>
               &#160;&#160;
-              <img src="/assets/rdf_w3c_icon.48.gif" height="28px" onclick="toggle_rdf_format_list();"/>
+              <img src="${deploy}assets/rdf_w3c_icon.48.gif" height="28px" onclick="toggle_rdf_format_list();"/>
           </span>
       </h1>
       <xsl:call-template name="rdf_links"/>

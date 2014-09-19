@@ -28,9 +28,9 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
     dbFile.delete()
   }
 
-  "server" should "resolve paths" in {
-    assert(new File(RDFServer.resolve("html/index.html")).exists())
-  }
+//  "server" should "resolve paths" in {
+//    assert(new File(RDFServer.resolve("html/index.html")).exists())
+//  }
 
   "sparql executor" should "answer a query" in {
     val model =  ModelFactory.createDefaultModel()
@@ -42,7 +42,7 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
   }
 
   "server" should "render html" in {
-    val result = RDFServer.renderHTML("Title","Some text")
+    val result = RDFServer.renderHTML("Title","Some text")(new PathResolver { def apply(s : String) = new URL("file:src/main/resources/"+s) } )
     assert(result contains "<body")
     assert(result contains "Title")
   }
@@ -64,7 +64,8 @@ class ServerTests extends FlatSpec with BeforeAndAfterAll with MockitoSugar {
 
   "server" should "send 501" in {
     val mockResponse = mock[HttpServletResponse]
-    RDFServer.send501(mockResponse)
+    RDFServer.send501(mockResponse)(new PathResolver { def apply(s : String) = new URL("file:src/main/resources/"+s) } )
+
   }
 
   "server" should "negotiate best mime type" in {

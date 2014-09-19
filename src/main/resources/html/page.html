@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Zrtifi - ${title}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/assets/bootstrap.min.css">
+    <link rel="stylesheet" href="${deploy}assets/bootstrap.min.css">
     <link href='http://fonts.googleapis.com/css?family=Rambla' rel='stylesheet' type='text/css'>
     <style>
 .circle {
@@ -47,22 +47,22 @@ body, h1, h2, h3, h4, h5 {
     font-size:20px;
 }
     </style>
-    <script type="text/javascript" src="/assets/md5-min.js"></script>
+    <script type="text/javascript" src="${deploy}assets/md5-min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="text/javascript">
 $(document).ready(function () {
 $("#url").keyup(function (data) {
     var hash = hex_md5($("#url").val());
     $('.md5').html(hash);
-    $('#md5_a').attr('href','/report/' + hash);
-    $('#md5_a2').attr('href','/report/' + hash);
-    $('#md5_img').attr('src','/badge/' + hash + '.png');
+    $('#md5_a').attr('href','${deploy}report/' + hash);
+    $('#md5_a2').attr('href','${deploy}report/' + hash);
+    $('#md5_img').attr('src','${deploy}badge/' + hash + '.png');
 });
 });
 
     </script>
     <!-- You should include this in your template to make RDF tables appear correctly -->
-    <link href="/assets/rdf.css" media="all" rel="stylesheet" type="text/css">
+    <link href="${deploy}assets/rdf.css" media="all" rel="stylesheet" type="text/css">
     <!-- Used to reveal/show RDF format options -->
     <script>
         var rdf_formats_revealed = false;
@@ -83,12 +83,12 @@ $("#url").keyup(function (data) {
   <div class="container">
       <div class="row">
           <div class="col-lg-4">
-              <h1 class="zrtifi_title"><img src="/assets/rosettei.png" style="max-width:45px;vertical-align:text-top;"/><span style="font-size:140%;color:white;">zrtifi</span></h1>
+              <h1 class="zrtifi_title"><img src="${deploy}assets/rosettei.png" style="max-width:45px;vertical-align:text-top;"/><span style="font-size:140%;color:white;">zrtifi</span></h1>
           </div>
           <div class="col-lg-3 pull-right">
-              <h3 class="nav_btns"> <a href="/">Home</a></h3>
-              <h3 class="nav_btns"> <a href="/list">Browse</a></h3>
-              <h3 class="nav_btns"> <a href="/search">Search</a></h3>
+              <h3 class="nav_btns"> <a href="${deploy}">Home</a></h3>
+              <h3 class="nav_btns"> <a href="${deploy}list">Browse</a></h3>
+              <h3 class="nav_btns"> <a href="${deploy}search">Search</a></h3>
           </div>
       </div>              
   </div>

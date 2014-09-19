@@ -1,4 +1,4 @@
-name := "yuzu"
+name := "zrtifi"
 
 version := "0.1"
 
